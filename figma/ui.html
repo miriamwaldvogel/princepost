@@ -86,15 +86,47 @@
        color: #721c24;
        display: block;
      }
+     input[type="text"], input[type="checkbox"] {
+       margin: 0;
+     }
+     input[type="text"] {
+       width: 100%;
+       padding: 6px 8px;
+       border: 1px solid #ccc;
+       border-radius: 4px;
+       font-size: 12px;
+       box-sizing: border-box;
+     }
+     .row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+     .row label { font-size: 12px; white-space: nowrap; }
    </style>
  </head>
  <body>
    <div class="container">
      <h2>Quote Formatter</h2>
      
-     <!-- JSON Input Section -->
+     <!-- Get from web (default flow) -->
      <div class="section">
-       <h3 style="font-size: 13px; margin: 0 0 8px 0;">JSON Input (Create Multiple Slides)</h3>
+       <h3 style="font-size: 13px; margin: 0 0 8px 0;">Get from web</h3>
+       <div class="instructions" style="margin-bottom: 8px;">
+         Use the same workspace name as in the web app. Then click to load, or turn on auto-sync.
+       </div>
+       <label style="font-size: 12px; font-weight: 500;">Workspace name</label>
+       <input type="text" id="workspaceName" placeholder="e.g. miriam or team-1" style="margin-top: 4px;">
+       <label style="font-size: 12px; font-weight: 500; display: block; margin-top: 8px;">API URL (leave blank if default)</label>
+       <input type="text" id="apiUrl" placeholder="https://your-app.vercel.app" style="margin-top: 4px;">
+       <div class="button-group" style="margin-top: 8px;">
+         <button class="primary" id="getFromWeb">Get from web</button>
+       </div>
+       <div class="row" style="margin-top: 8px;">
+         <input type="checkbox" id="autoSync">
+         <label for="autoSync">Auto-sync (check to load new posts automatically while this panel is open)</label>
+       </div>
+     </div>
+     
+     <!-- JSON Input Section (manual paste) -->
+     <div class="section">
+       <h3 style="font-size: 13px; margin: 0 0 8px 0;">Or paste JSON</h3>
        <div class="instructions" style="margin-bottom: 8px;">
          Paste JSON to generate multiple slides from templates:
        </div>
@@ -116,8 +148,50 @@
        </div>
      </div>
      
+     <div id="message" class="message"></div>
+   </div>
  
    <script>
+     const workspaceEl = document.getElementById('workspaceName');
+     const apiUrlEl = document.getElementById('apiUrl');
+     const getFromWebBtn = document.getElementById('getFromWeb');
+     const autoSyncCheck = document.getElementById('autoSync');
+     
+     let autoSyncInterval = null;
+     const AUTO_SYNC_MS = 10000;
+     
+     // Request saved workspace and API URL from main thread
+     parent.postMessage({ pluginMessage: { type: 'get-storage' } }, '*');
+     
+     function getWorkspace() { return (workspaceEl && workspaceEl.value.trim()) || ''; }
+     function getApiUrl() { return (apiUrlEl && apiUrlEl.value.trim()) ? apiUrlEl.value.trim().replace(/\/$/, '') : ''; }
+     
+     function saveStorage() {
+       parent.postMessage({ pluginMessage: { type: 'set-storage', workspace: getWorkspace(), apiUrl: getApiUrl() } }, '*');
+     }
+     if (workspaceEl) workspaceEl.addEventListener('change', saveStorage);
+     if (apiUrlEl) apiUrlEl.addEventListener('change', saveStorage);
+     
+     function fetchPayload(manual) {
+       const workspace = getWorkspace();
+       if (!workspace) {
+         if (manual) showMessage('error', 'Enter workspace name');
+         return;
+       }
+       parent.postMessage({ pluginMessage: { type: 'fetch-payload', workspace, apiUrl: getApiUrl(), manual } }, '*');
+     }
+     
+     getFromWebBtn.onclick = () => fetchPayload(true);
+     
+     autoSyncCheck.onchange = () => {
+       if (autoSyncInterval) clearInterval(autoSyncInterval);
+       autoSyncInterval = null;
+       if (autoSyncCheck.checked) {
+         fetchPayload(false);
+         autoSyncInterval = setInterval(() => fetchPayload(false), AUTO_SYNC_MS);
+       }
+     };
+     
      document.getElementById('processJson').onclick = () => {
        const jsonText = document.getElementById('jsonInput').value.trim();
        if (!jsonText) {
@@ -127,28 +201,21 @@
        parent.postMessage({ pluginMessage: { type: 'process-json', json: jsonText } }, '*');
      };
      
-     document.getElementById('format').onclick = () => {
-       parent.postMessage({ pluginMessage: { type: 'format-quotes' } }, '*');
-     };
-     
-     document.getElementById('cancel').onclick = () => {
-       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-     };
-     
      function showMessage(type, text) {
        const messageEl = document.getElementById('message');
        messageEl.className = 'message ' + type;
        messageEl.textContent = (type === 'success' ? '✓ ' : '✗ ') + text;
-       
-       setTimeout(() => {
-         messageEl.className = 'message';
-       }, 5000);
+       setTimeout(() => { messageEl.className = 'message'; }, 5000);
      }
      
      window.onmessage = (event) => {
        const msg = event.data.pluginMessage;
+       if (!msg) return;
        if (msg.type === 'success' || msg.type === 'error') {
          showMessage(msg.type, msg.message);
+       } else if (msg.type === 'storage') {
+         if (workspaceEl && msg.workspace != null) workspaceEl.value = msg.workspace;
+         if (apiUrlEl && msg.apiUrl != null) apiUrlEl.value = msg.apiUrl;
        }
      };
    </script>

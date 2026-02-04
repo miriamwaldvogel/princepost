@@ -1,7 +1,11 @@
-figma.showUI(__html__, { width: 500, height: 400 });
+figma.showUI(__html__, { width: 500, height: 520 });
 
 // Template configs loaded from templates.json (or fallback). Loaded when first needed.
 let TEMPLATE_CONFIGS = {};
+// For auto-sync: only process when sentAt changes
+let lastProcessedSentAt = null;
+
+const STORAGE_KEYS = { workspace: 'audience_workspace', apiUrl: 'audience_api_url' };
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {
@@ -11,6 +15,46 @@ figma.ui.onmessage = async (msg) => {
     await processJsonInput(msg.json);
   } else if (msg.type === 'cancel') {
     figma.closePlugin();
+  } else if (msg.type === 'get-storage') {
+    const workspace = await figma.clientStorage.getAsync(STORAGE_KEYS.workspace);
+    const apiUrl = await figma.clientStorage.getAsync(STORAGE_KEYS.apiUrl);
+    figma.ui.postMessage({ type: 'storage', workspace: workspace || '', apiUrl: apiUrl || '' });
+  } else if (msg.type === 'set-storage') {
+    await figma.clientStorage.setAsync(STORAGE_KEYS.workspace, msg.workspace || '');
+    await figma.clientStorage.setAsync(STORAGE_KEYS.apiUrl, msg.apiUrl || '');
+  } else if (msg.type === 'fetch-payload') {
+    const apiUrl = (msg.apiUrl || '').trim().replace(/\/$/, '');
+    const workspace = (msg.workspace || '').trim();
+    if (!apiUrl) {
+      figma.ui.postMessage({ type: 'error', message: 'API URL is required. Enter your backend URL (e.g. https://your-app.vercel.app).' });
+      return;
+    }
+    if (!workspace) {
+      figma.ui.postMessage({ type: 'error', message: 'Workspace name is required.' });
+      return;
+    }
+    const url = `${apiUrl}/api/payload?workspace=${encodeURIComponent(workspace)}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok) {
+        figma.ui.postMessage({ type: 'error', message: data.error || `Error ${res.status}` });
+        return;
+      }
+      const json = data.json;
+      const sentAt = data.sentAt;
+      const manual = msg.manual === true;
+      if (json == null) {
+        if (manual) figma.ui.postMessage({ type: 'error', message: 'No payload for this workspace yet. Send from the web app first.' });
+        return;
+      }
+      if (manual || sentAt === undefined || sentAt === null || sentAt !== lastProcessedSentAt) {
+        lastProcessedSentAt = sentAt;
+        await processJsonInput(json);
+      }
+    } catch (e) {
+      figma.ui.postMessage({ type: 'error', message: 'Network error: ' + (e.message || 'Check API URL and connection.') });
+    }
   }
 };
 

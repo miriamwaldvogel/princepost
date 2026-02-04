@@ -681,9 +681,19 @@
 
       <div class="json-output">
         <h3>Export to Figma</h3>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="workspaceName">Workspace name</label>
+          <input type="text" id="workspaceName" placeholder="e.g. miriam or team-1" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+          <small style="display: block; margin-top: 4px; color: #666; font-size: 12px;">Use the same name in the Figma plugin so only your posts load there.</small>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="apiBaseUrl">API URL (leave blank if this page is on the same site as the API)</label>
+          <input type="text" id="apiBaseUrl" placeholder="https://your-app.vercel.app" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+        </div>
         <div class="button-group" style="margin-bottom: 15px;">
-          <button class="btn-success" onclick="copyJSON()">📋 Copy JSON to Clipboard</button>
-          <button class="btn-secondary" onclick="downloadJSON()">💾 Download JSON</button>
+          <button class="btn-success" onclick="sendToFigma()">Send to Figma</button>
+          <button class="btn-secondary" onclick="copyJSON()">📋 Copy JSON</button>
+          <button class="btn-secondary" onclick="downloadJSON()">💾 Download</button>
         </div>
         <div class="json-display" id="jsonDisplay">Your JSON will appear here...</div>
       </div>
@@ -998,6 +1008,22 @@ function addSlideWithTemplate(templateName) {
   updateJSON();
 }
 
+function removeSlide(id) {
+  slides = slides.filter(s => s.id !== id);
+  renderSlides();
+  updateJSON();
+}
+
+function moveSlide(id, direction) {
+  const index = slides.findIndex(s => s.id === id);
+  if (index === -1) return;
+  const newIndex = direction === 'up' ? index - 1 : index + 1;
+  if (newIndex < 0 || newIndex >= slides.length) return;
+  [slides[index], slides[newIndex]] = [slides[newIndex], slides[index]];
+  renderSlides();
+  updateJSON();
+}
+
 
     function renderSlides() {
       const container = document.getElementById('slidesList');
@@ -1153,6 +1179,54 @@ function handleKeydown(event, slideId, chunkIndex) {
       showNotification('JSON file downloaded!');
     }
 
+    const WORKSPACE_STORAGE_KEY = 'audience_workspace';
+    const API_BASE_STORAGE_KEY = 'audience_api_base';
+
+    function getApiBase() {
+      const el = document.getElementById('apiBaseUrl');
+      const v = el ? el.value.trim() : '';
+      return v ? v.replace(/\/$/, '') : '';
+    }
+
+    async function sendToFigma() {
+      const workspaceEl = document.getElementById('workspaceName');
+      const workspace = workspaceEl ? workspaceEl.value.trim() : '';
+      if (!workspace) {
+        showNotification('Enter a workspace name first.', 'error');
+        return;
+      }
+      const json = document.getElementById('jsonDisplay').textContent;
+      if (!json || json === 'Your JSON will appear here...') {
+        showNotification('Add at least one slide or cover first.', 'error');
+        return;
+      }
+      try {
+        JSON.parse(json);
+      } catch (e) {
+        showNotification('Invalid JSON. Please fix the content.', 'error');
+        return;
+      }
+      const base = getApiBase();
+      const url = base ? `${base}/api/send` : '/api/send';
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspace, json }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showNotification(data.error || `Error ${res.status}`, 'error');
+          return;
+        }
+        showNotification('Sent to Figma! Open Figma and click “Get from web” in the plugin.');
+        try { localStorage.setItem(WORKSPACE_STORAGE_KEY, workspace); } catch (_) {}
+        try { localStorage.setItem(API_BASE_STORAGE_KEY, base); } catch (_) {}
+      } catch (e) {
+        showNotification('Network error. Check API URL and connection.', 'error');
+      }
+    }
+
     function clearAll() {
       if (confirm('Are you sure you want to clear everything?')) {
         slides = [];
@@ -1263,6 +1337,18 @@ function handleKeydown(event, slideId, chunkIndex) {
         b.setAttribute('aria-pressed', b.getAttribute('data-template') === selected ? 'true' : 'false');
       });
     }
+
+    // Load workspace and API URL from localStorage
+    try {
+      const savedWorkspace = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+      const savedApiBase = localStorage.getItem(API_BASE_STORAGE_KEY);
+      const wEl = document.getElementById('workspaceName');
+      const aEl = document.getElementById('apiBaseUrl');
+      if (wEl && savedWorkspace != null) wEl.value = savedWorkspace;
+      if (aEl && savedApiBase != null) aEl.value = savedApiBase;
+      if (wEl) wEl.addEventListener('change', () => { try { localStorage.setItem(WORKSPACE_STORAGE_KEY, wEl.value.trim()); } catch (_) {} });
+      if (aEl) aEl.addEventListener('change', () => { try { localStorage.setItem(API_BASE_STORAGE_KEY, aEl.value.trim()); } catch (_) {} });
+    } catch (_) {}
 
     // Initialize (after templates.json is loaded)
 (async () => {

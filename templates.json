@@ -79,5 +79,28 @@
     ],
     "nameFont": 60,
     "positionFont": 50
+  },
+  "Two chunk news blurb": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 60,
+    "structure": [
+      "Header 1",
+      "Quote 1"
+    ],
+    "nameFont": 60,
+    "positionFont": 50
+  },
+  "Three sentence quote": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 65,
+    "structure": [
+      "Quote 1",
+      "Quote 2",
+      "Quote 3"
+    ],
+    "nameFont": 60,
+    "positionFont": 50
   }
 }
