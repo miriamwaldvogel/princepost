@@ -1,73 +1,83 @@
 {
-    "Two chunk quote": {
-      "type": "slide",
-      "section": "all",
-      "structure": ["Quote 1", "Quote 2"],
-      "maxFont": 75,
-      "nameFont": 60,
-      "positionFont": 50
-    },
-  
-    "One chunk quote": {
-      "type": "slide",
-      "section": "all",
-      "structure": ["Quote 1"],
-      "maxFont": 75,
-      "nameFont": 60,
-      "positionFont": 50
-    },
-  
-    "Quote with header": {
-      "type": "slide",
-      "section": "all",
-      "structure": ["Header 1", "Quote 1"],
-      "maxFont": 60,
-      "nameFont": 60,
-      "positionFont": 50
-    },
-  
-    "Opinion cover 1": {
-      "type": "cover",
-      "section": "opinion",
-      "maxFont": 80,
-      "nameFont": 60,
-      "positionFont": 55
-    },
-  
-    "Opinion cover 2": {
-      "type": "cover",
-      "section": "opinion",
-      "maxFont": 70,
-      "nameFont": 46,
-      "positionFont": 46
-    },
-  
-    "News cover 1": {
-      "type": "cover",
-      "section": "news",
-      "maxFont": 80
-    },
-
-    "News cover 2": {
-        "type": "cover",
-        "section": "news",
-        "maxFont": 80
-      },
-
-    "Features cover 1": {
-      "type": "cover",
-      "section": "features",
-      "maxFont": 85
-    },
-    "Sports cover 1": {
-        "type": "cover",
-        "section": "sports",
-        "maxFont": 75
-      },
-      "Prospect cover 1": {
-        "type": "cover",
-        "section": "prospect",
-        "maxFont": 70
-      }
+  "Two chunk quote": {
+    "type": "slide",
+    "section": "all",
+    "structure": [
+      "Quote 1",
+      "Quote 2"
+    ],
+    "maxFont": 75,
+    "nameFont": 60,
+    "positionFont": 50
+  },
+  "One chunk quote": {
+    "type": "slide",
+    "section": "all",
+    "structure": [
+      "Quote 1"
+    ],
+    "maxFont": 75,
+    "nameFont": 60,
+    "positionFont": 50
+  },
+  "Quote with header": {
+    "type": "slide",
+    "section": "all",
+    "structure": [
+      "Header 1",
+      "Quote 1"
+    ],
+    "maxFont": 60,
+    "nameFont": 60,
+    "positionFont": 50
+  },
+  "Opinion cover 1": {
+    "type": "cover",
+    "section": "opinion",
+    "maxFont": 80,
+    "nameFont": 60,
+    "positionFont": 55
+  },
+  "Opinion cover 2": {
+    "type": "cover",
+    "section": "opinion",
+    "maxFont": 70,
+    "nameFont": 46,
+    "positionFont": 46
+  },
+  "News cover 1": {
+    "type": "cover",
+    "section": "news",
+    "maxFont": 80
+  },
+  "News cover 2": {
+    "type": "cover",
+    "section": "news",
+    "maxFont": 80
+  },
+  "Features cover 1": {
+    "type": "cover",
+    "section": "features",
+    "maxFont": 85
+  },
+  "Sports cover 1": {
+    "type": "cover",
+    "section": "sports",
+    "maxFont": 75
+  },
+  "Prospect cover 1": {
+    "type": "cover",
+    "section": "prospect",
+    "maxFont": 70
+  },
+  "News blurb left aligned": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 65,
+    "structure": [
+      "Quote 1"
+    ],
+    "nameFont": 60,
+    "positionFont": 50
   }
-  
+}

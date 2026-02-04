@@ -1,5 +1,8 @@
 figma.showUI(__html__, { width: 500, height: 400 });
 
+// Template configs loaded from templates.json (or fallback). Loaded when first needed.
+let TEMPLATE_CONFIGS = {};
+
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'format-quotes') {
@@ -11,22 +14,38 @@ figma.ui.onmessage = async (msg) => {
   }
 };
 
-// Template configurations
-const TEMPLATE_CONFIGS = {
-  "Two chunk quote": { maxFont: 75, nameFont: 60, positionFont: 50 },
-  "One chunk quote": { maxFont: 75, nameFont: 60, positionFont: 50 },
-  "Quote with header": { maxFont: 60, nameFont: 60, positionFont: 50 },
-  "Opinion cover 1": { maxFont: 80, nameFont: 60, positionFont: 55 },
-  "Opinion cover 2": { maxFont: 70, nameFont: 46, positionFont: 46 },
-  "Features cover 1": { maxFont: 85 },
-  "Sports cover 1": { maxFont: 75 },
-  "News cover 1": { maxFont: 80 },
-  "News cover 2": { maxFont: 80 },
-  "Prospect cover 1": { maxFont: 70 }
-};
+
+async function loadTemplateConfigs() {
+  try {
+    const response = await fetch('https://miriamwaldvogel.github.io/instagram-post/templates.json');
+    if (!response.ok) {
+      throw new Error('Failed to load templates.json');
+    }
+    TEMPLATE_CONFIGS = await response.json();
+    console.log('Loaded template configs:', TEMPLATE_CONFIGS);
+  } catch (error) {
+    console.error('Error loading templates.json:', error);
+    // Fallback to hardcoded values if network fails
+    TEMPLATE_CONFIGS = {
+      "Two chunk quote": { maxFont: 75, nameFont: 60, positionFont: 50 },
+      "One chunk quote": { maxFont: 75, nameFont: 60, positionFont: 50 },
+      "Quote with header": { maxFont: 60, nameFont: 60, positionFont: 50 },
+      "Opinion cover 1": { maxFont: 80, nameFont: 60, positionFont: 55 },
+      "Opinion cover 2": { maxFont: 70, nameFont: 46, positionFont: 46 },
+      "Features cover 1": { maxFont: 85 },
+      "Sports cover 1": { maxFont: 75 },
+      "News cover 1": { maxFont: 80 },
+      "News cover 2": { maxFont: 80 },
+      "Prospect cover 1": { maxFont: 70 }
+    };
+  }
+}
 
 async function processJsonInput(jsonString) {
   try {
+    // Ensure template configs are loaded before processing (from templates.json or fallback)
+    await loadTemplateConfigs();
+
     const data = JSON.parse(jsonString);
     
     // Create a new frame to hold all slides
