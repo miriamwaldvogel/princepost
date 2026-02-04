@@ -613,18 +613,10 @@ async function findOptimalFontSize(textData, maxFontSize) {
   const minSize = 8;
   const fontSizes = [];
   
-  console.log('Finding optimal font size with max:', maxFontSize);
-  console.log('Number of text boxes:', textData.length);
-  
   for (const data of textData) {
     const node = data.node;
     const currentFont = node.getRangeFontName(0, 1);
     await figma.loadFontAsync(currentFont);
-    
-    console.log(`Processing ${node.name}:`);
-    console.log(`  Box dimensions: ${data.width} x ${data.height}`);
-    console.log(`  Text length: ${data.text.length} chars`);
-    console.log(`  Initial text auto resize: ${node.textAutoResize}`);
     
     let low = minSize;
     let high = maxFontSize;

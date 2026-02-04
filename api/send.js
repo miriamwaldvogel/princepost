@@ -6,28 +6,46 @@ const cors = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+function setCors(res) {
+  Object.entries(cors).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+}
+
 function ok(res, body, status = 200) {
-  return res.status(status).set(cors).json(body);
+  setCors(res);
+  return res.status(status).json(body);
 }
 
 function err(res, message, status = 400) {
-  return res.status(status).set(cors).json({ error: message });
+  setCors(res);
+  return res.status(status).json({ error: message });
 }
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') return res.status(204).set(cors).end();
+  if (req.method === 'OPTIONS') {
+    setCors(res);
+    return res.status(204).end();
+  }
   if (req.method !== 'POST') return err(res, 'Method not allowed', 405);
+
+  // Check env vars before creating Redis client
+  // Support both Upstash Redis and Vercel KV naming conventions
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (!redisUrl || !redisToken) {
+    return err(res, 'Storage not configured. Add Upstash Redis to this Vercel project and ensure UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_URL/KV_REST_API_TOKEN) are set.', 503);
+  }
 
   let redis;
   try {
     redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      url: redisUrl,
+      token: redisToken,
     });
   } catch (e) {
-    return res.status(503).set(cors).json({
-      error: 'Storage not configured. Add Upstash Redis to this Vercel project.',
-    });
+    console.error('Redis client creation error:', e);
+    return err(res, 'Failed to initialize storage client.', 503);
   }
 
   const { workspace, json } = req.body || {};
@@ -43,7 +61,7 @@ export default async function handler(req, res) {
     await redis.set(key, value);
     return ok(res, { ok: true });
   } catch (e) {
-    console.error(e);
-    return res.status(503).set(cors).json({ error: 'Storage error' });
+    console.error('Redis set error:', e);
+    return err(res, 'Storage error: ' + (e.message || 'Unknown error'), 503);
   }
 }

@@ -113,8 +113,9 @@
        </div>
        <label style="font-size: 12px; font-weight: 500;">Workspace name</label>
        <input type="text" id="workspaceName" placeholder="e.g. miriam or team-1" style="margin-top: 4px;">
-       <label style="font-size: 12px; font-weight: 500; display: block; margin-top: 8px;">API URL (leave blank if default)</label>
-       <input type="text" id="apiUrl" placeholder="https://your-app.vercel.app" style="margin-top: 4px;">
+       <label style="font-size: 12px; font-weight: 500; display: block; margin-top: 8px;">API URL (required)</label>
+       <input type="text" id="apiUrl" placeholder="http://localhost:3000 (local) or https://your-app.vercel.app" style="margin-top: 4px;">
+       <small style="display: block; margin-top: 4px; color: #666; font-size: 11px;">For local testing: use http://localhost:3000 (or the port shown by 'vercel dev'). For production: use your Vercel URL.</small>
        <div class="button-group" style="margin-top: 8px;">
          <button class="primary" id="getFromWeb">Get from web</button>
        </div>
