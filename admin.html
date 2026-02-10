@@ -12,27 +12,46 @@
     h1 { font-size: 1.5rem; margin-bottom: 24px; }
     .card { background: #16213e; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
     .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #a0aec0; }
-    input[type="password"], input[type="file"], textarea, button { font: inherit; }
-    input[type="password"] { width: 100%; max-width: 280px; padding: 10px 12px; border: 1px solid #2d3748; border-radius: 6px; background: #0f0f1a; color: #eee; margin-bottom: 12px; }
+    input[type="password"], input[type="text"], input[type="number"], input[type="file"], select, textarea, button { font: inherit; }
+    input, select, textarea { padding: 8px 10px; border: 1px solid #2d3748; border-radius: 6px; background: #0f0f1a; color: #eee; }
+    input[type="number"] { width: 80px; }
+    input[type="checkbox"] { width: auto; margin-right: 8px; }
+    label { display: block; margin-bottom: 4px; font-size: 14px; color: #a0aec0; }
+    .form-row { margin-bottom: 14px; }
+    .form-row.inline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .form-row.inline label { margin-bottom: 0; margin-right: 4px; }
     button { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; background: #4299e1; color: #fff; }
     button:hover { background: #3182ce; }
     button.danger { background: #e53e3e; }
     button.danger:hover { background: #c53030; }
     button.secondary { background: #4a5568; }
     button.secondary:hover { background: #2d3748; }
-    textarea { width: 100%; min-height: 280px; padding: 12px; border: 1px solid #2d3748; border-radius: 6px; background: #0f0f1a; color: #e2e8f0; font-size: 13px; resize: vertical; }
+    textarea { width: 100%; min-height: 80px; padding: 12px; border: 1px solid #2d3748; border-radius: 6px; background: #0f0f1a; color: #e2e8f0; font-size: 13px; resize: vertical; }
     .login-wrap { max-width: 320px; }
     .msg { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 14px; }
     .msg.error { background: #442727; color: #feb2b2; }
     .msg.success { background: #276749; color: #9ae6b4; }
     .thumb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
     .thumb-item { background: #0f0f1a; border-radius: 8px; padding: 12px; text-align: center; }
-    .thumb-item img { width: 100%; height: auto; border-radius: 4px; background: #2d3748; min-height: 80px; object-fit: contain; }
+    .thumb-item img { width: 100%; height: auto; border-radius: 4px; background: #2d3748; min-height: 80px; object-fit: contain; cursor: pointer; }
     .thumb-item .name { font-size: 12px; margin-top: 8px; word-break: break-word; color: #a0aec0; }
     .thumb-item .actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
     .thumb-item .actions button { padding: 6px 10px; font-size: 12px; }
     .header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
     .hidden { display: none; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.hidden { display: none; }
+    .modal { background: #16213e; border-radius: 12px; padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { margin-bottom: 16px; color: #e2e8f0; }
+    .modal .form-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .modal .form-actions button:first-child { margin-right: auto; }
+
+    .add-form .form-block { margin-bottom: 16px; }
+    .add-form .form-block.slide-only, .add-form .form-block.cover-only { display: none; }
+    .add-form .form-block.slide-only.visible, .add-form .form-block.cover-only.visible { display: block; }
+    .json-section summary { cursor: pointer; color: #a0aec0; font-size: 14px; margin-bottom: 8px; }
+    .json-section textarea { min-height: 200px; }
   </style>
 </head>
 <body>
@@ -53,26 +72,136 @@
         <button type="button" id="logoutBtn" class="secondary">Log out</button>
       </div>
 
+      <!-- Add template form (add_template.py logic) -->
       <div class="card">
-        <h2>Templates (templates.json)</h2>
-        <p style="margin-bottom:10px;font-size:14px;color:#a0aec0;">Edit the JSON below and save. Each key is a template name; values must include <code>type</code> (cover or slide) and <code>section</code>.</p>
-        <textarea id="templatesJson" spellcheck="false"></textarea>
-        <div style="margin-top:10px;">
-          <button type="button" id="saveTemplatesBtn">Save templates</button>
-          <span id="templatesMsg" class="msg hidden" style="margin-left:12px;"></span>
+        <h2>Add template</h2>
+        <form id="addTemplateForm" class="add-form">
+          <div class="form-row">
+            <label for="addName">Template name</label>
+            <input type="text" id="addName" required placeholder="e.g. Opinion cover 1" />
+          </div>
+          <div class="form-row">
+            <label for="addType">Type</label>
+            <select id="addType">
+              <option value="slide">Slide</option>
+              <option value="cover">Cover</option>
+            </select>
+          </div>
+          <div class="form-block cover-only" id="addSectionBlock">
+            <label for="addSection">Section (covers only)</label>
+            <select id="addSection">
+              <option value="opinion">opinion</option>
+              <option value="news">news</option>
+              <option value="features">features</option>
+              <option value="sports">sports</option>
+              <option value="prospect">prospect</option>
+              <option value="all">all</option>
+            </select>
+          </div>
+          <div class="form-block slide-only" id="addStructureBlock">
+            <label for="addStructure">Structure (comma-separated layer names, slides only)</label>
+            <input type="text" id="addStructure" placeholder="Quote 1, Quote 2" value="Quote 1" />
+          </div>
+          <div class="form-row inline">
+            <label for="addMaxFont">maxFont</label>
+            <input type="number" id="addMaxFont" min="1" value="80" required />
+            <label for="addNameFont">nameFont (0 = none)</label>
+            <input type="number" id="addNameFont" min="0" value="60" />
+            <label for="addPositionFont">positionFont (0 = none)</label>
+            <input type="number" id="addPositionFont" min="0" value="50" />
+          </div>
+          <div class="form-row inline">
+            <input type="checkbox" id="addBackgroundImage" />
+            <label for="addBackgroundImage" class="inline">Background image</label>
+          </div>
+          <div class="form-row">
+            <label for="addThumbFile">Thumbnail (optional PNG; saved as &lt;Template name&gt;.png)</label>
+            <input type="file" id="addThumbFile" accept="image/png,.png" />
+          </div>
+          <div class="form-actions">
+            <button type="submit">Add template</button>
+            <span id="addFormMsg" class="msg hidden" style="margin-left:12px;"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Edit template modal -->
+      <div id="editModal" class="modal-overlay hidden">
+        <div class="modal">
+          <h3 id="editModalTitle">Edit template</h3>
+          <form id="editTemplateForm">
+            <input type="hidden" id="editName" />
+            <div class="form-row">
+              <label>Template name</label>
+              <input type="text" id="editNameDisplay" disabled />
+            </div>
+            <div class="form-row">
+              <label for="editType">Type</label>
+              <select id="editType">
+                <option value="slide">Slide</option>
+                <option value="cover">Cover</option>
+              </select>
+            </div>
+            <div class="form-block cover-only" id="editSectionBlock">
+              <label for="editSection">Section</label>
+              <select id="editSection">
+                <option value="opinion">opinion</option>
+                <option value="news">news</option>
+                <option value="features">features</option>
+                <option value="sports">sports</option>
+                <option value="prospect">prospect</option>
+                <option value="all">all</option>
+              </select>
+            </div>
+            <div class="form-block slide-only" id="editStructureBlock">
+              <label for="editStructure">Structure (comma-separated)</label>
+              <input type="text" id="editStructure" placeholder="Quote 1, Quote 2" />
+            </div>
+            <div class="form-row inline">
+              <label for="editMaxFont">maxFont</label>
+              <input type="number" id="editMaxFont" min="1" required />
+              <label for="editNameFont">nameFont</label>
+              <input type="number" id="editNameFont" min="0" />
+              <label for="editPositionFont">positionFont</label>
+              <input type="number" id="editPositionFont" min="0" />
+            </div>
+            <div class="form-row inline">
+              <input type="checkbox" id="editBackgroundImage" />
+              <label for="editBackgroundImage" class="inline">Background image</label>
+            </div>
+            <div class="form-row">
+              <button type="button" id="editReplaceThumbBtn" class="secondary">Replace thumbnail</button>
+            </div>
+            <div class="form-actions">
+              <button type="button" id="editModalCancel" class="secondary">Cancel</button>
+              <button type="submit">Save</button>
+              <span id="editFormMsg" class="msg hidden" style="margin-left:12px;"></span>
+            </div>
+          </form>
         </div>
       </div>
 
       <div class="card">
-        <h2>Cover thumbnails</h2>
-        <p style="margin-bottom:12px;font-size:14px;color:#a0aec0;">Replace or delete PNG thumbnails for cover templates.</p>
+        <h2>Cover templates</h2>
+        <p style="margin-bottom:12px;font-size:14px;color:#a0aec0;">Click a thumbnail to edit, or use Replace / Delete.</p>
         <div id="coverThumbList" class="thumb-list"></div>
       </div>
 
       <div class="card">
-        <h2>Slide thumbnails</h2>
-        <p style="margin-bottom:12px;font-size:14px;color:#a0aec0;">Replace or delete PNG thumbnails for slide templates.</p>
+        <h2>Slide templates</h2>
+        <p style="margin-bottom:12px;font-size:14px;color:#a0aec0;">Click a thumbnail to edit, or use Replace / Delete.</p>
         <div id="slideThumbList" class="thumb-list"></div>
+      </div>
+
+      <div class="card json-section">
+        <details>
+          <summary>Advanced: edit JSON by hand</summary>
+          <textarea id="templatesJson" spellcheck="false"></textarea>
+          <div style="margin-top:10px;">
+            <button type="button" id="saveTemplatesBtn">Save templates</button>
+            <span id="templatesMsg" class="msg hidden" style="margin-left:12px;"></span>
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -89,6 +218,17 @@
     const templatesMsg = document.getElementById('templatesMsg');
     const coverThumbList = document.getElementById('coverThumbList');
     const slideThumbList = document.getElementById('slideThumbList');
+    const addTemplateForm = document.getElementById('addTemplateForm');
+    const addFormMsg = document.getElementById('addFormMsg');
+    const editModal = document.getElementById('editModal');
+    const editTemplateForm = document.getElementById('editTemplateForm');
+    const editFormMsg = document.getElementById('editFormMsg');
+    const editModalCancel = document.getElementById('editModalCancel');
+    const editReplaceThumbBtn = document.getElementById('editReplaceThumbBtn');
+
+    let currentTemplates = {};
+
+    const SECTIONS = ['opinion', 'news', 'features', 'sports', 'prospect', 'all'];
 
     function showMsg(el, text, isError) {
       el.textContent = text;
@@ -99,6 +239,19 @@
       el.classList.add('hidden');
     }
 
+    function toggleAddFormBlocks() {
+      const type = document.getElementById('addType').value;
+      document.getElementById('addSectionBlock').classList.toggle('visible', type === 'cover');
+      document.getElementById('addStructureBlock').classList.toggle('visible', type === 'slide');
+    }
+    function toggleEditFormBlocks() {
+      const type = document.getElementById('editType').value;
+      document.getElementById('editSectionBlock').classList.toggle('visible', type === 'cover');
+      document.getElementById('editStructureBlock').classList.toggle('visible', type === 'slide');
+    }
+    document.getElementById('addType').addEventListener('change', toggleAddFormBlocks);
+    document.getElementById('editType').addEventListener('change', toggleEditFormBlocks);
+
     async function checkSession() {
       const r = await fetch('/api/auth/session', { credentials: 'include' });
       if (r.ok) {
@@ -107,7 +260,7 @@
         loadTemplates();
         return true;
       }
-      loginView.classList.remove('hidden');
+      loginView.classList.add('hidden');
       dashboardView.classList.add('hidden');
       return false;
     }
@@ -142,13 +295,172 @@
     async function loadTemplates() {
       const r = await fetch('/api/templates', { credentials: 'include' });
       if (!r.ok) {
+        currentTemplates = {};
         templatesJson.value = '{}';
+        renderThumbLists({});
         return;
       }
       const data = await r.json();
+      currentTemplates = data;
       templatesJson.value = JSON.stringify(data, null, 2);
       renderThumbLists(data);
+      toggleAddFormBlocks();
     }
+
+    function buildEntryFromForm(prefix) {
+      const type = document.getElementById(prefix + 'Type').value;
+      const section = type === 'cover' ? document.getElementById(prefix + 'Section').value : 'all';
+      const structureStr = document.getElementById(prefix + 'Structure').value.trim();
+      const structure = structureStr ? structureStr.split(',').map((s) => s.trim()).filter(Boolean) : ['Quote 1'];
+      const maxFont = parseInt(document.getElementById(prefix + 'MaxFont').value, 10) || 80;
+      const nameFont = parseInt(document.getElementById(prefix + 'NameFont').value, 10) || 0;
+      const positionFont = parseInt(document.getElementById(prefix + 'PositionFont').value, 10) || 0;
+      const backgroundImage = document.getElementById(prefix + 'BackgroundImage').checked;
+      const entry = {
+        type,
+        section,
+        maxFont,
+        nameFont,
+        positionFont,
+        backgroundImage,
+      };
+      if (type === 'slide') entry.structure = structure;
+      return entry;
+    }
+
+    addTemplateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMsg(addFormMsg);
+      const name = document.getElementById('addName').value.trim();
+      if (!name) {
+        showMsg(addFormMsg, 'Template name is required', true);
+        return;
+      }
+      if (currentTemplates[name]) {
+        showMsg(addFormMsg, 'A template with this name already exists. Edit it from the list or use a different name.', true);
+        return;
+      }
+      const entry = buildEntryFromForm('add');
+      const thumbFile = document.getElementById('addThumbFile').files[0];
+
+      currentTemplates[name] = entry;
+      const r = await fetch('/api/templates', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentTemplates),
+      });
+      if (!r.ok) {
+        delete currentTemplates[name];
+        const err = (await r.json().catch(() => ({}))).error || 'Save failed';
+        showMsg(addFormMsg, err, true);
+        return;
+      }
+      if (thumbFile) {
+        const base64 = await fileToBase64(thumbFile);
+        const type = entry.type;
+        const thumbUrl = `/api/thumbnails/${type}/${encodeURIComponent(name)}`;
+        const tr = await fetch(thumbUrl, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: base64 }),
+        });
+        if (!tr.ok) {
+          const err = (await tr.json().catch(() => ({}))).error || 'Thumbnail upload failed';
+          showMsg(addFormMsg, 'Template saved but thumbnail failed: ' + err, true);
+        }
+      }
+      showMsg(addFormMsg, 'Template added.', false);
+      document.getElementById('addThumbFile').value = '';
+      loadTemplates();
+      setTimeout(() => hideMsg(addFormMsg), 3000);
+    });
+
+    function openEditModal(name) {
+      const cfg = currentTemplates[name];
+      if (!cfg) return;
+      document.getElementById('editName').value = name;
+      document.getElementById('editNameDisplay').value = name;
+      document.getElementById('editType').value = cfg.type || 'slide';
+      document.getElementById('editSection').value = cfg.section || 'opinion';
+      document.getElementById('editStructure').value = Array.isArray(cfg.structure) ? cfg.structure.join(', ') : 'Quote 1';
+      document.getElementById('editMaxFont').value = cfg.maxFont ?? 80;
+      document.getElementById('editNameFont').value = cfg.nameFont ?? 0;
+      document.getElementById('editPositionFont').value = cfg.positionFont ?? 0;
+      document.getElementById('editBackgroundImage').checked = !!cfg.backgroundImage;
+      toggleEditFormBlocks();
+      hideMsg(editFormMsg);
+      editModal.classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      editModal.classList.add('hidden');
+    }
+
+    editModalCancel.addEventListener('click', closeEditModal);
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
+
+    editTemplateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMsg(editFormMsg);
+      const name = document.getElementById('editName').value.trim();
+      if (!name || !currentTemplates[name]) {
+        closeEditModal();
+        return;
+      }
+      const entry = buildEntryFromForm('edit');
+      currentTemplates[name] = entry;
+      const r = await fetch('/api/templates', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentTemplates),
+      });
+      if (r.ok) {
+        showMsg(editFormMsg, 'Saved.', false);
+        templatesJson.value = JSON.stringify(currentTemplates, null, 2);
+        renderThumbLists(currentTemplates);
+        setTimeout(() => { closeEditModal(); hideMsg(editFormMsg); }, 800);
+      } else {
+        const err = (await r.json().catch(() => ({}))).error || 'Save failed';
+        showMsg(editFormMsg, err, true);
+      }
+    });
+
+    editReplaceThumbBtn.addEventListener('click', () => {
+      const name = document.getElementById('editName').value.trim();
+      if (!name) return;
+      const cfg = currentTemplates[name];
+      const type = cfg && cfg.type ? cfg.type : 'slide';
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/png,.png';
+      input.onchange = async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const base64 = await fileToBase64(file);
+        const url = `/api/thumbnails/${type}/${encodeURIComponent(name)}`;
+        const r = await fetch(url, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: base64 }),
+        });
+        if (r.ok) {
+          const img = document.querySelector(`.thumb-item[data-name="${escapeHtml(name)}"] img`);
+          if (img) img.src = url + '?t=' + Date.now();
+          showMsg(editFormMsg, 'Thumbnail updated.', false);
+          setTimeout(() => hideMsg(editFormMsg), 2000);
+        } else {
+          const err = (await r.json().catch(() => ({}))).error || 'Upload failed';
+          showMsg(editFormMsg, err, true);
+        }
+      };
+      input.click();
+    });
 
     function renderThumbLists(templates) {
       const covers = [];
@@ -161,17 +473,33 @@
       }
       coverThumbList.innerHTML = covers.map((name) => thumbItemHtml('cover', name)).join('');
       slideThumbList.innerHTML = slides.map((name) => thumbItemHtml('slide', name)).join('');
+      coverThumbList.querySelectorAll('.thumb-item').forEach((el) => {
+        const name = el.dataset.name;
+        el.querySelector('img').addEventListener('click', () => openEditModal(name));
+        el.querySelector('.name').addEventListener('click', () => openEditModal(name));
+      });
       coverThumbList.querySelectorAll('button[data-action="replace"]').forEach((btn) => {
-        btn.addEventListener('click', () => replaceThumb('cover', btn.dataset.name));
+        btn.addEventListener('click', (e) => { e.stopPropagation(); replaceThumb('cover', btn.dataset.name); });
       });
       coverThumbList.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
-        btn.addEventListener('click', () => deleteThumb('cover', btn.dataset.name));
+        btn.addEventListener('click', (e) => { e.stopPropagation(); deleteThumb('cover', btn.dataset.name); });
+      });
+      coverThumbList.querySelectorAll('button[data-action="edit"]').forEach((btn) => {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(btn.dataset.name); });
+      });
+      slideThumbList.querySelectorAll('.thumb-item').forEach((el) => {
+        const name = el.dataset.name;
+        el.querySelector('img').addEventListener('click', () => openEditModal(name));
+        el.querySelector('.name').addEventListener('click', () => openEditModal(name));
       });
       slideThumbList.querySelectorAll('button[data-action="replace"]').forEach((btn) => {
-        btn.addEventListener('click', () => replaceThumb('slide', btn.dataset.name));
+        btn.addEventListener('click', (e) => { e.stopPropagation(); replaceThumb('slide', btn.dataset.name); });
       });
       slideThumbList.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
-        btn.addEventListener('click', () => deleteThumb('slide', btn.dataset.name));
+        btn.addEventListener('click', (e) => { e.stopPropagation(); deleteThumb('slide', btn.dataset.name); });
+      });
+      slideThumbList.querySelectorAll('button[data-action="edit"]').forEach((btn) => {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(btn.dataset.name); });
       });
     }
 
@@ -179,9 +507,10 @@
       const url = `/api/thumbnails/${type}/${encodeURIComponent(name)}`;
       return `
         <div class="thumb-item" data-name="${escapeHtml(name)}">
-          <img src="${url}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='';this.alt='No image';" />
-          <div class="name">${escapeHtml(name)}</div>
+          <img src="${url}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.style.opacity=0.35;this.alt='No image';" title="Click to edit" />
+          <div class="name" title="Click to edit">${escapeHtml(name)}</div>
           <div class="actions">
+            <button type="button" data-action="edit" data-name="${escapeHtml(name)}">Edit</button>
             <button type="button" data-action="replace" data-name="${escapeHtml(name)}">Replace</button>
             <button type="button" data-action="delete" data-name="${escapeHtml(name)}" class="danger">Delete</button>
           </div>
@@ -233,12 +562,15 @@
     }
 
     async function deleteThumb(type, name) {
-      if (!confirm(`Delete thumbnail for "${name}"?`)) return;
+      if (!confirm(`Delete thumbnail for "${name}"? (Template data will remain; you can replace the image later.)`)) return;
       const url = `/api/thumbnails/${type}/${encodeURIComponent(name)}`;
       const r = await fetch(url, { method: 'DELETE', credentials: 'include' });
       if (r.ok) {
         const item = document.querySelector(`.thumb-item[data-name="${escapeHtml(name)}"]`);
-        if (item) item.remove();
+        if (item) {
+          const img = item.querySelector('img');
+          if (img) img.src = '';
+        }
       } else {
         const err = (await r.json().catch(() => ({}))).error || 'Delete failed';
         alert(err);
@@ -265,6 +597,7 @@
         body: JSON.stringify(data),
       });
       if (r.ok) {
+        currentTemplates = data;
         showMsg(templatesMsg, 'Saved.', false);
         renderThumbLists(data);
         setTimeout(() => hideMsg(templatesMsg), 3000);
