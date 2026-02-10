@@ -588,7 +588,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Instagram Slide Generator</h1>
+    <h1>PrincePost</h1>
 
     <!-- Article Type Selection -->
     <div class="input-section" style="border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
@@ -660,7 +660,6 @@
     </div>
 
     <div class="input-section">
-      <h2>Quote Slides</h2>
 
       <div class="slides-section" id="slidesSection">
         <h2>Configure Your Slides</h2>
@@ -759,8 +758,28 @@ function getTemplateStructure(templateName) {
   if (cfg && Array.isArray(cfg.structure) && cfg.structure.length) {
     return cfg.structure;
   }
-  // Safe fallback (should rarely be used)
   return ["Quote 1"];
+}
+
+function hasNameOrPosition(templateName) {
+  const cfg = TEMPLATE_CONFIGS[templateName];
+  if (!cfg) return false;
+  return ((cfg.nameFont || 0) > 0) || ((cfg.positionFont || 0) > 0);
+}
+
+function showNameField(templateName) {
+  const cfg = TEMPLATE_CONFIGS[templateName];
+  return cfg && (cfg.nameFont || 0) > 0;
+}
+
+function showPositionField(templateName) {
+  const cfg = TEMPLATE_CONFIGS[templateName];
+  return cfg && (cfg.positionFont || 0) > 0;
+}
+
+function hasBackgroundImage(templateName) {
+  const cfg = TEMPLATE_CONFIGS[templateName];
+  return !!(cfg && cfg.backgroundImage);
 }
 
 
@@ -900,15 +919,6 @@ function getTemplateStructure(templateName) {
       }
     }
 
-    function removeChunk(id, chunkIndex) {
-      const slide = slides.find(s => s.id === id);
-      if (slide && slide.texts.length > 1) {
-        slide.texts.splice(chunkIndex, 1);
-        renderSlides();
-        updateJSON();
-      }
-    }
-
     // --- Slide template thumbnails + add-slide UI ---
 
 let addSlideTemplate = "One chunk quote"; // default; will be validated on render
@@ -1002,7 +1012,8 @@ function addSlideWithTemplate(templateName) {
     template: chosen,
     texts,
     speaker: authorName,
-    position: authorPosition
+    position: authorPosition,
+    backgroundImageUrl: ''
   });
 
   renderSlides();
@@ -1055,7 +1066,7 @@ function moveSlide(id, direction) {
               </div>
 
               <div class="form-group">
-                <label>Text Chunks (Cmd/Ctrl+B to bold/highlight)</label>
+                <label>Text Chunks (Cmd/Ctrl+B to highlight orange)</label>
                 ${slide.texts.map((text, i) => {
                   const displayText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
                   const structure = getTemplateStructure(slide.template);
@@ -1070,11 +1081,7 @@ function moveSlide(id, direction) {
                            onkeydown="handleKeydown(event, ${slide.id}, ${i})"
                            onblur="updateChunkText(${slide.id}, ${i}, this)"
                            oninput="updateChunkText(${slide.id}, ${i}, this)">${displayText}</div>
-                      ${slide.texts.length > 1 ? `
-                        <div class="chunk-controls">
-                          <button class="btn-small btn-danger" onclick="removeChunk(${slide.id}, ${i})">Remove Chunk</button>
-                        </div>
-                      ` : ''}
+
                     </div>
                   `;
                 }).join('')}
@@ -1083,16 +1090,28 @@ function moveSlide(id, direction) {
                 ` : ''}
               </div>
 
+              ${hasNameOrPosition(slide.template) ? `
               <div class="speaker-position-group">
+                ${showNameField(slide.template) ? `
                 <div class="form-group">
                   <label>Name (optional)</label>
-                  <input type="text" value="${slide.speaker}" onchange="updateSlide(${slide.id}, 'speaker', this.value)" placeholder="e.g., John Doe">
+                  <input type="text" value="${slide.speaker || ''}" onchange="updateSlide(${slide.id}, 'speaker', this.value)" placeholder="e.g., John Doe">
                 </div>
+                ` : ''}
+                ${showPositionField(slide.template) ? `
                 <div class="form-group">
                   <label>Position (optional)</label>
-                  <input type="text" value="${slide.position}" onchange="updateSlide(${slide.id}, 'position', this.value)" placeholder="e.g., Staff Writer">
+                  <input type="text" value="${slide.position || ''}" onchange="updateSlide(${slide.id}, 'position', this.value)" placeholder="e.g., Staff Writer">
                 </div>
+                ` : ''}
               </div>
+              ` : ''}
+              ${hasBackgroundImage(slide.template) ? `
+              <div class="form-group" style="margin-top: 12px;">
+                <label>Background image URL</label>
+                <input type="text" value="${(slide.backgroundImageUrl || '')}" onchange="updateSlide(${slide.id}, 'backgroundImageUrl', this.value)" placeholder="https://...">
+              </div>
+              ` : ''}
             </div>
 
             <div class="slide-card-side">
@@ -1148,11 +1167,13 @@ function handleKeydown(event, slideId, chunkIndex) {
       template: slide.template,
       texts: slide.texts.filter(t => t.trim())
     };
-
-    // Always include speaker/position (even if empty)
-    slideData.speaker = slide.speaker || '';
-    slideData.position = slide.position || '';
-
+    if (hasNameOrPosition(slide.template)) {
+      slideData.speaker = slide.speaker || '';
+      slideData.position = slide.position || '';
+    }
+    if (hasBackgroundImage(slide.template) && (slide.backgroundImageUrl || '').trim()) {
+      slideData.backgroundImageUrl = (slide.backgroundImageUrl || '').trim();
+    }
     return slideData;
   });
 

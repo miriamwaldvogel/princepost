@@ -5,7 +5,7 @@ let TEMPLATE_CONFIGS = {};
 // For auto-sync: only process when sentAt changes
 let lastProcessedSentAt = null;
 
-const STORAGE_KEYS = { workspace: 'audience_workspace', apiUrl: 'audience_api_url' };
+const STORAGE_KEYS = { workspace: 'audience_workspace', apiUrl: 'audience_api_url', lastProcessedSentAt: 'audience_last_processed_sent_at' };
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {
@@ -18,6 +18,8 @@ figma.ui.onmessage = async (msg) => {
   } else if (msg.type === 'get-storage') {
     const workspace = await figma.clientStorage.getAsync(STORAGE_KEYS.workspace);
     const apiUrl = await figma.clientStorage.getAsync(STORAGE_KEYS.apiUrl);
+    const savedSentAt = await figma.clientStorage.getAsync(STORAGE_KEYS.lastProcessedSentAt);
+    if (savedSentAt != null) lastProcessedSentAt = savedSentAt;
     figma.ui.postMessage({ type: 'storage', workspace: workspace || '', apiUrl: apiUrl || '' });
   } else if (msg.type === 'set-storage') {
     await figma.clientStorage.setAsync(STORAGE_KEYS.workspace, msg.workspace || '');
@@ -33,7 +35,9 @@ figma.ui.onmessage = async (msg) => {
       figma.ui.postMessage({ type: 'error', message: 'Workspace name is required.' });
       return;
     }
-    const url = `${apiUrl}/api/payload?workspace=${encodeURIComponent(workspace)}`;
+    const manual = msg.manual === true;
+    const since = manual ? '' : (lastProcessedSentAt != null ? lastProcessedSentAt : 0);
+    const url = `${apiUrl}/api/payload?workspace=${encodeURIComponent(workspace)}${since !== '' ? `&since=${since}` : ''}`;
     try {
       const res = await fetch(url);
       const data = await res.json();
@@ -41,15 +45,28 @@ figma.ui.onmessage = async (msg) => {
         figma.ui.postMessage({ type: 'error', message: data.error || `Error ${res.status}` });
         return;
       }
+
+      if (data.payloads && Array.isArray(data.payloads)) {
+        for (const p of data.payloads) {
+          const json = p && p.json;
+          const sentAt = p && p.sentAt;
+          if (json == null) continue;
+          lastProcessedSentAt = Math.max(lastProcessedSentAt || 0, sentAt || 0);
+          await figma.clientStorage.setAsync(STORAGE_KEYS.lastProcessedSentAt, lastProcessedSentAt);
+          await processJsonInput(json);
+        }
+        return;
+      }
+
       const json = data.json;
       const sentAt = data.sentAt;
-      const manual = msg.manual === true;
       if (json == null) {
         if (manual) figma.ui.postMessage({ type: 'error', message: 'No payload for this workspace yet. Send from the web app first.' });
         return;
       }
       if (manual || sentAt === undefined || sentAt === null || sentAt !== lastProcessedSentAt) {
         lastProcessedSentAt = sentAt;
+        await figma.clientStorage.setAsync(STORAGE_KEYS.lastProcessedSentAt, lastProcessedSentAt);
         await processJsonInput(json);
       }
     } catch (e) {
@@ -138,7 +155,7 @@ async function processJsonInput(jsonString) {
         const templateConfig = TEMPLATE_CONFIGS[slide.template];
         
         // Process the instance
-        await processSlideInstance(instance, slide.texts, slide.speaker, slide.position, templateConfig);
+        await processSlideInstance(instance, slide.texts, slide.speaker, slide.position, templateConfig, slide.backgroundImageUrl);
         
         processedCount++;
       }
@@ -279,9 +296,32 @@ async function findComponent(name) {
   return components.length > 0 ? components[0] : null;
 }
 
-async function processSlideInstance(instance, texts, speaker, position, templateConfig) {
+async function processSlideInstance(instance, texts, speaker, position, templateConfig, backgroundImageUrl) {
   // Keep clipping as is - don't change it
-  
+  const config = templateConfig || {};
+
+  // Background image: fill node named "Background image" if template supports it and URL provided
+  if (config.backgroundImage && backgroundImageUrl) {
+    const bgNode = instance.findOne(node =>
+      node.name === 'Background image'
+    );
+    if (bgNode) {
+      try {
+        const imageBytes = await fetch(backgroundImageUrl).then(r => r.arrayBuffer());
+        const image = figma.createImage(new Uint8Array(imageBytes));
+        if (bgNode.type === 'RECTANGLE' || bgNode.type === 'FRAME' || bgNode.type === 'ELLIPSE') {
+          bgNode.fills = [{
+            type: 'IMAGE',
+            scaleMode: 'FILL',
+            imageHash: image.hash
+          }];
+        }
+      } catch (error) {
+        console.error('Failed to load background image:', error);
+      }
+    }
+  }
+
   // Find all text layers - separate Headers and Quotes
   const headerLayers = [];
   const quoteLayers = [];
@@ -373,14 +413,16 @@ async function processSlideInstance(instance, texts, speaker, position, template
     });
   }
   
-  // Find and process Name and position layer (always, even if empty)
-const namePositionNode = instance.findOne(node => 
-  node.type === 'TEXT' && node.name === 'Name and position'
-);
-
-if (namePositionNode) {
-  await processNamePositionNode(namePositionNode, speaker, position, templateConfig);
-}
+  // Find and process Name and position layer only when template has nameFont/positionFont > 0
+  const hasNamePosition = (config.nameFont || 0) > 0 || (config.positionFont || 0) > 0;
+  if (hasNamePosition) {
+    const namePositionNode = instance.findOne(node =>
+      node.type === 'TEXT' && node.name === 'Name and position'
+    );
+    if (namePositionNode) {
+      await processNamePositionNode(namePositionNode, speaker || '', position || '', config);
+    }
+  }
   
   // Find optimal font sizes separately for headers and quotes
   const maxFontSize = templateConfig.maxFont || 80;

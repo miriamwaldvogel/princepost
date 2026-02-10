@@ -56,7 +56,7 @@ def main():
         if not structure:
             structure = ["Quote 1"]
     else:
-        section = prompt("Section (e.g. all, opinion, news, features, sports, prospect)", "opinion")
+        section = prompt("Section (all or opinion. Only relevant for covers)", "opinion")
         structure = None
 
     max_font = prompt_int("maxFont", 80)
@@ -64,20 +64,28 @@ def main():
         print("maxFont is required.")
         return 1
 
+    print("For nameFont/positionFont: enter 0 if this template has no name/position fields.")
     name_font = prompt_int("nameFont", 60, allow_empty=True)
     position_font = prompt_int("positionFont", 50, allow_empty=True)
+    if name_font is None:
+        name_font = 0
+    if position_font is None:
+        position_font = 0
+
+    bg_choice = prompt("Background image? (y/n)", "n").strip().lower()
+    background_image = bg_choice in ("y", "yes", "true", "1")
+
     # Build entry
     entry = {
         "type": template_type,
         "section": section,
         "maxFont": max_font,
+        "nameFont": name_font,
+        "positionFont": position_font,
+        "backgroundImage": background_image,
     }
     if structure is not None:
         entry["structure"] = structure
-    if name_font is not None:
-        entry["nameFont"] = name_font
-    if position_font is not None:
-        entry["positionFont"] = position_font
 
     # Load, update, write
     if not TEMPLATES_JSON.exists():

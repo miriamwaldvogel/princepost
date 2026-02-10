@@ -51,16 +51,26 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: 'Failed to initialize storage client.' });
   }
 
-  const key = `audience:payload:${workspace}`;
+  const since = typeof req.query?.since === 'string' ? parseInt(req.query.since, 10) : NaN;
+  const key = `audience:payloads:${workspace}`;
   try {
     const raw = await redis.get(key);
-    if (raw == null) {
+    const list = raw != null ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
+    const payloads = Array.isArray(list) ? list : [];
+
+    if (!Number.isNaN(since) && since >= 0) {
+      const newPayloads = payloads.filter((p) => (p?.sentAt ?? 0) > since);
+      setCors(res);
+      return res.status(200).json({ payloads: newPayloads });
+    }
+
+    if (payloads.length === 0) {
       setCors(res);
       return res.status(404).json({ json: null, sentAt: null });
     }
-    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    const json = data?.json ?? null;
-    const sentAt = data?.sentAt ?? null;
+    const latest = payloads[payloads.length - 1];
+    const json = latest?.json ?? null;
+    const sentAt = latest?.sentAt ?? null;
     setCors(res);
     return res.status(200).json({ json, sentAt });
   } catch (e) {

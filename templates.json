@@ -8,7 +8,8 @@
     ],
     "maxFont": 75,
     "nameFont": 60,
-    "positionFont": 50
+    "positionFont": 50,
+    "backgroundImage": false
   },
   "One chunk quote": {
     "type": "slide",
@@ -18,7 +19,8 @@
     ],
     "maxFont": 75,
     "nameFont": 60,
-    "positionFont": 50
+    "positionFont": 50,
+    "backgroundImage": false
   },
   "Quote with header": {
     "type": "slide",
@@ -29,46 +31,64 @@
     ],
     "maxFont": 60,
     "nameFont": 60,
-    "positionFont": 50
+    "positionFont": 50,
+    "backgroundImage": false
   },
   "Opinion cover 1": {
     "type": "cover",
     "section": "opinion",
     "maxFont": 80,
     "nameFont": 60,
-    "positionFont": 55
+    "positionFont": 55,
+    "backgroundImage": false
   },
   "Opinion cover 2": {
     "type": "cover",
     "section": "opinion",
     "maxFont": 70,
     "nameFont": 46,
-    "positionFont": 46
+    "positionFont": 46,
+    "backgroundImage": false
   },
   "News cover 1": {
     "type": "cover",
     "section": "news",
-    "maxFont": 80
+    "maxFont": 80,
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "News cover 2": {
     "type": "cover",
     "section": "news",
-    "maxFont": 80
+    "maxFont": 80,
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "Features cover 1": {
     "type": "cover",
     "section": "features",
-    "maxFont": 85
+    "maxFont": 85,
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "Sports cover 1": {
     "type": "cover",
     "section": "sports",
-    "maxFont": 75
+    "maxFont": 75,
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "Prospect cover 1": {
     "type": "cover",
     "section": "prospect",
-    "maxFont": 70
+    "maxFont": 70,
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "News blurb left aligned": {
     "type": "slide",
@@ -77,8 +97,9 @@
     "structure": [
       "Quote 1"
     ],
-    "nameFont": 60,
-    "positionFont": 50
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "Two chunk news blurb": {
     "type": "slide",
@@ -88,8 +109,9 @@
       "Header 1",
       "Quote 1"
     ],
-    "nameFont": 60,
-    "positionFont": 50
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
   },
   "Three sentence quote": {
     "type": "slide",
@@ -101,6 +123,60 @@
       "Quote 3"
     ],
     "nameFont": 60,
-    "positionFont": 50
+    "positionFont": 50,
+    "backgroundImage": false
+  },
+  "News blurb centered": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 65,
+    "structure": [
+      "Quote 1"
+    ],
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": false
+  },
+  "News blurb with photo background": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 65,
+    "structure": [
+      "Quote 1"
+    ],
+    "nameFont": 0,
+    "positionFont": 0,
+    "backgroundImage": true
+  },
+  "Quote with photo background": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 75,
+    "structure": [
+      "Quote 1"
+    ],
+    "nameFont": 60,
+    "positionFont": 50,
+    "backgroundImage": true
+  },
+  "Quote alternative format": {
+    "type": "slide",
+    "section": "all",
+    "maxFont": 70,
+    "structure": [
+      "Quote 1",
+      "Quote 2"
+    ],
+    "nameFont": 60,
+    "positionFont": 50,
+    "backgroundImage": false
+  },
+  "News cover 3": {
+    "type": "cover",
+    "section": "all",
+    "maxFont": 70,
+    "nameFont": 60,
+    "positionFont": 50,
+    "backgroundImage": false
   }
 }

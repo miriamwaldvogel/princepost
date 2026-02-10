@@ -54,11 +54,17 @@ export default async function handler(req, res) {
   if (ws.length > 64) return err(res, 'workspace too long');
   if (typeof json !== 'string') return err(res, 'json (string) is required');
 
-  const key = `audience:payload:${ws}`;
-  const value = JSON.stringify({ json, sentAt: Date.now() });
+  const sentAt = Date.now();
+  const key = `audience:payloads:${ws}`;
+  const MAX_PAYLOADS = 100;
 
   try {
-    await redis.set(key, value);
+    const raw = await redis.get(key);
+    const list = raw != null ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
+    if (!Array.isArray(list)) list = [];
+    list.push({ json, sentAt });
+    const trimmed = list.slice(-MAX_PAYLOADS);
+    await redis.set(key, JSON.stringify(trimmed));
     return ok(res, { ok: true });
   } catch (e) {
     console.error('Redis set error:', e);
