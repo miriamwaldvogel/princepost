@@ -3,9 +3,11 @@
  <head>
    <style>
      body {
-       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
        padding: 16px;
        margin: 0;
+       background: #ffffff;
+       color: #000000;
      }
      .container {
        display: flex;
@@ -16,9 +18,10 @@
        margin: 0 0 8px 0;
        font-size: 14px;
        font-weight: 600;
+       color: #000000;
      }
      .section {
-       border-bottom: 1px solid #e0e0e0;
+       border-bottom: 1px solid #eaeaea;
        padding-bottom: 16px;
      }
      .section:last-child {
@@ -26,19 +29,25 @@
      }
      .instructions {
        font-size: 12px;
-       color: #666;
+       color: #000000;
        line-height: 1.5;
      }
      textarea {
        width: 100%;
        min-height: 200px;
        padding: 8px;
-       border: 1px solid #ccc;
+       border: 1px solid #eaeaea;
        border-radius: 4px;
        font-family: monospace;
        font-size: 11px;
        resize: vertical;
        box-sizing: border-box;
+       background: #ffffff;
+       color: #000000;
+     }
+     textarea:focus {
+       border-color: #b1d7fb;
+       outline: none;
      }
      .button-group {
        display: flex;
@@ -56,18 +65,19 @@
        transition: background 0.2s;
      }
      .primary {
-       background: #18a0fb;
-       color: white;
+       background: #f15a24;
+       color: #ffffff;
      }
      .primary:hover {
-       background: #1290e8;
+       background: #e87722;
      }
      .secondary {
-       background: #e0e0e0;
-       color: #333;
+       background: #eaeaea;
+       color: #000000;
      }
      .secondary:hover {
-       background: #d0d0d0;
+       background: #b1d7fb;
+       color: #000000;
      }
      .message {
        padding: 10px;
@@ -77,14 +87,16 @@
        display: none;
      }
      .message.success {
-       background: #d4edda;
-       color: #155724;
+       background: #b1d7fb;
+       color: #000000;
        display: block;
+       border: 1px solid #eaeaea;
      }
      .message.error {
-       background: #f8d7da;
-       color: #721c24;
+       background: #b1d7fb;
+       color: #000000;
        display: block;
+       border: 1px solid #eaeaea;
      }
      input[type="text"], input[type="checkbox"] {
        margin: 0;
@@ -92,13 +104,19 @@
      input[type="text"] {
        width: 100%;
        padding: 6px 8px;
-       border: 1px solid #ccc;
+       border: 1px solid #eaeaea;
        border-radius: 4px;
        font-size: 12px;
        box-sizing: border-box;
+       background: #ffffff;
+       color: #000000;
+     }
+     input[type="text"]:focus {
+       border-color: #b1d7fb;
+       outline: none;
      }
      .row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-     .row label { font-size: 12px; white-space: nowrap; }
+     .row label { font-size: 12px; white-space: nowrap; color: #000000; }
    </style>
  </head>
  <body>
@@ -114,8 +132,8 @@
        <label style="font-size: 12px; font-weight: 500;">Workspace name</label>
        <input type="text" id="workspaceName" placeholder="e.g. miriam or team-1" style="margin-top: 4px;">
        <label style="font-size: 12px; font-weight: 500; display: block; margin-top: 8px;">API URL (required)</label>
-       <input type="text" id="apiUrl" placeholder="http://localhost:3000 (local) or https://your-app.vercel.app" style="margin-top: 4px;">
-       <small style="display: block; margin-top: 4px; color: #666; font-size: 11px;">The plugin runs inside Figma, so it always needs the full URL: e.g. https://instagram-post-mu.vercel.app. For local testing use http://localhost:3000.</small>
+       <input type="text" id="apiUrl" value="https://princepost.vercel.app/" style="margin-top: 4px;">
+       <small style="display: block; margin-top: 4px; color: #000000; font-size: 11px;">Points the API to the correct backend. You should not need to change this.</small>
        <div class="button-group" style="margin-top: 8px;">
          <button class="primary" id="getFromWeb">Get from web</button>
        </div>
@@ -127,7 +145,7 @@
      
      <!-- JSON Input Section (manual paste) -->
      <div class="section">
-       <h3 style="font-size: 13px; margin: 0 0 8px 0;">Or paste JSON</h3>
+       <h3 style="font-size: 13px; margin: 0 0 8px 0;">Or paste JSON (manual)</h3>
        <div class="instructions" style="margin-bottom: 8px;">
          Paste JSON to generate multiple slides from templates:
        </div>

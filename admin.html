@@ -7,56 +7,62 @@
   <link rel="icon" href="favicon.png" type="image/x-icon">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; padding: 24px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #eaeaea;
+      color: #000000;
+      padding: 24px;
+    }
     .container { max-width: 900px; margin: 0 auto; }
-    h1 { font-size: 1.5rem; margin-bottom: 24px; }
-    .card { background: #16213e; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-    .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #a0aec0; }
+    h1 { font-size: 1.5rem; margin-bottom: 24px; color: #000000; }
+    .card { background: #ffffff; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #eaeaea; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #000000; }
     input[type="password"], input[type="text"], input[type="number"], input[type="file"], select, textarea, button { font: inherit; }
-    input, select, textarea { padding: 8px 10px; border: 1px solid #2d3748; border-radius: 6px; background: #0f0f1a; color: #eee; }
+    input, select, textarea { padding: 8px 10px; border: 1px solid #eaeaea; border-radius: 6px; background: #ffffff; color: #000000; }
+    input:focus, select:focus, textarea:focus { border-color: #b1d7fb; outline: none; }
     input[type="number"] { width: 80px; }
     input[type="checkbox"] { width: auto; margin-right: 8px; }
-    label { display: block; margin-bottom: 4px; font-size: 14px; color: #a0aec0; }
+    label { display: block; margin-bottom: 4px; font-size: 14px; color: #000000; }
     .form-row { margin-bottom: 14px; }
     .form-row.inline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .form-row.inline label { margin-bottom: 0; margin-right: 4px; }
-    button { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; background: #4299e1; color: #fff; }
-    button:hover { background: #3182ce; }
-    button.danger { background: #e53e3e; }
-    button.danger:hover { background: #c53030; }
-    button.secondary { background: #4a5568; }
-    button.secondary:hover { background: #2d3748; }
-    textarea { width: 100%; min-height: 80px; padding: 12px; border: 1px solid #2d3748; border-radius: 6px; background: #0f0f1a; color: #e2e8f0; font-size: 13px; resize: vertical; }
+    button { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; background: #f15a24; color: #ffffff; }
+    button:hover { background: #e87722; }
+    button.danger { background: #000000; color: #ffffff; }
+    button.danger:hover { background: #333; }
+    button.secondary { background: #eaeaea; color: #000000; }
+    button.secondary:hover { background: #b1d7fb; color: #000000; }
+    textarea { width: 100%; min-height: 80px; padding: 12px; border: 1px solid #eaeaea; border-radius: 6px; background: #ffffff; color: #000000; font-size: 13px; resize: vertical; }
     .login-wrap { max-width: 320px; }
     .msg { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 14px; }
-    .msg.error { background: #442727; color: #feb2b2; }
-    .msg.success { background: #276749; color: #9ae6b4; }
+    .msg.error { background: #b1d7fb; color: #000000; border: 1px solid #eaeaea; }
+    .msg.success { background: #b1d7fb; color: #000000; border: 1px solid #eaeaea; }
     .thumb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-    .thumb-item { background: #0f0f1a; border-radius: 8px; padding: 12px; text-align: center; }
-    .thumb-item img { width: 100%; height: auto; border-radius: 4px; background: #2d3748; min-height: 80px; object-fit: contain; cursor: pointer; }
-    .thumb-item .name { font-size: 12px; margin-top: 8px; word-break: break-word; color: #a0aec0; }
+    .thumb-item { background: #ffffff; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid #eaeaea; }
+    .thumb-item img { width: 100%; height: auto; border-radius: 4px; background: #eaeaea; min-height: 80px; object-fit: contain; cursor: pointer; }
+    .thumb-item .name { font-size: 12px; margin-top: 8px; word-break: break-word; color: #000000; }
     .thumb-item .actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
     .thumb-item .actions button { padding: 6px 10px; font-size: 12px; }
     .header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
     .back-to-princepost-container { margin-bottom: 20px; }
-    .back-to-princepost-container a { display: inline-block; padding: 10px 16px; border-radius: 6px; background: #4a5568; color: #fff; text-decoration: none; font-size: 14px; }
-    .back-to-princepost-container a:hover { background: #2d3748; }
+    .back-to-princepost-container a { display: inline-block; padding: 10px 16px; border-radius: 6px; background: #eaeaea; color: #000000; text-decoration: none; font-size: 14px; }
+    .back-to-princepost-container a:hover { background: #b1d7fb; color: #000000; }
     .radio-group { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
     .radio-group label.radio-label { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 0; cursor: pointer; font-weight: normal; }
     .radio-group input[type="radio"] { width: auto; margin: 0; }
     .hidden { display: none; }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.hidden { display: none; }
-    .modal { background: #16213e; border-radius: 12px; padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
-    .modal h3 { margin-bottom: 16px; color: #e2e8f0; }
+    .modal { background: #ffffff; border-radius: 12px; padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid #eaeaea; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .modal h3 { margin-bottom: 16px; color: #000000; }
     .modal .form-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
     .modal .form-actions button:first-child { margin-right: auto; }
 
     .add-form .form-block { margin-bottom: 16px; }
     .add-form .form-block.slide-only, .add-form .form-block.cover-only { display: none; }
     .add-form .form-block.slide-only.visible, .add-form .form-block.cover-only.visible { display: block; }
-    .json-section summary { cursor: pointer; color: #a0aec0; font-size: 14px; margin-bottom: 8px; }
+    .json-section summary { cursor: pointer; color: #000000; font-size: 14px; margin-bottom: 8px; }
     .json-section textarea { min-height: 200px; }
   </style>
 </head>
@@ -184,13 +190,13 @@
 
       <div class="card">
         <h2>Cover templates</h2>
-        <p style="margin-bottom:12px;font-size:14px;color:#a0aec0;">Click a thumbnail to edit, or use Delete to remove the image.</p>
+        <p style="margin-bottom:12px;font-size:14px;color:#000000;">Click a thumbnail to edit, or use Delete to remove the image.</p>
         <div id="coverThumbList" class="thumb-list"></div>
       </div>
 
       <div class="card">
         <h2>Slide templates</h2>
-        <p style="margin-bottom:12px;font-size:14px;color:#a0aec0;">Click a thumbnail to edit, or use Delete to remove the image.</p>
+        <p style="margin-bottom:12px;font-size:14px;color:#000000;">Click a thumbnail to edit, or use Delete to remove the image.</p>
         <div id="slideThumbList" class="thumb-list"></div>
       </div>
 
